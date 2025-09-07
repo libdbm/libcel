@@ -2,9 +2,7 @@ import 'package:libcel/libcel.dart';
 
 void main(List<String> arguments) {
   if (arguments.isEmpty) {
-    print(
-      'Usage: cel <expression> [variable1=value1] [variable2=value2] ...',
-    );
+    print('Usage: cel <expression> [variable1=value1] [variable2=value2] ...');
     print('Example: cel "x + y" x=10 y=20');
     return;
   }
