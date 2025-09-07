@@ -64,7 +64,7 @@ library;
 // Export the main CEL API
 export 'src/cel/cel.dart' show Cel, CelProgram, ParseError;
 
-// Export the interpreter error class  
+// Export the interpreter error class
 export 'src/cel/interpreter.dart' show EvaluationError;
 
 // Export function interfaces for custom implementations

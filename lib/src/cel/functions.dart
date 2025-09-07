@@ -29,7 +29,7 @@ abstract class Functions {
   /// Throws an exception if the function is not found or if the arguments
   /// are invalid.
   dynamic call(String name, List<dynamic> args);
-  
+
   /// Calls a method on a target object.
   ///
   /// [target] - The object to call the method on.

@@ -186,7 +186,7 @@ class CelGrammar extends GrammarDefinition {
       ref0(nullLiteral) |
       ref0(boolLiteral) |
       ref0(doubleLiteral) | // Check double before int (handles exponential)
-      ref0(uintLiteral) |  // Check uint before int (handles 'u' suffix)
+      ref0(uintLiteral) | // Check uint before int (handles 'u' suffix)
       ref0(intLiteral) |
       ref0(stringLiteral) |
       ref0(bytesLiteral);
@@ -201,24 +201,26 @@ class CelGrammar extends GrammarDefinition {
   Parser intLiteral() =>
       (char('-').optional() &
               (
-                  // Hexadecimal: 0x[0-9a-fA-F]+
-                  (string('0x') & pattern('0-9a-fA-F').plus()) |
+              // Hexadecimal: 0x[0-9a-fA-F]+
+              (string('0x') & pattern('0-9a-fA-F').plus()) |
                   // Decimal: [0-9]+
                   (digit().plus() &
                       (char('.') & digit().plus()).not() &
                       pattern('eE').not()) // Exclude exponential notation
-              ))
+                  ))
           .flatten()
           .trim();
 
   // uintLiteral = ( '0x' [0-9a-fA-F]+ | [0-9]+ ) [uU]
-  Parser uintLiteral() => 
+  Parser uintLiteral() =>
       ((
-          // Hexadecimal: 0x[0-9a-fA-F]+
-          (string('0x') & pattern('0-9a-fA-F').plus()) |
-          // Decimal: [0-9]+
-          digit().plus()
-      ) & pattern('uU')).flatten().trim();
+              // Hexadecimal: 0x[0-9a-fA-F]+
+              (string('0x') & pattern('0-9a-fA-F').plus()) |
+                  // Decimal: [0-9]+
+                  digit().plus()) &
+              pattern('uU'))
+          .flatten()
+          .trim();
 
   // doubleLiteral = '-'? [0-9]+ ( '.' [0-9]+ ( [eE] [+-]? [0-9]+ )? | [eE] [+-]? [0-9]+ )
   Parser doubleLiteral() =>
@@ -240,8 +242,9 @@ class CelGrammar extends GrammarDefinition {
           .trim();
 
   // stringLiteral = rawString | interpretedString | tripleQuotedString
-  Parser stringLiteral() => 
-      (ref0(tripleQuotedString) | ref0(rawString) | ref0(interpretedString)).trim();
+  Parser stringLiteral() =>
+      (ref0(tripleQuotedString) | ref0(rawString) | ref0(interpretedString))
+          .trim();
 
   // rawString = [rR] ( '"' [^"]* '"' | "'" [^']* "'" )
   Parser rawString() =>
@@ -269,24 +272,21 @@ class CelGrammar extends GrammarDefinition {
       (
           // Optional raw prefix
           pattern('rR').optional() &
-          (
+              (
               // """string""" - allows any content including newlines
-              (string('"""') & 
-                  (
-                      // Match anything except """ 
+              (string('"""') &
+                      (
+                      // Match anything except """
                       // This allows single or double quotes, but not triple quotes
-                      (string('"""').not() & any()).star()
-                  ) &
-                  string('"""')) |
-              // '''string''' - allows any content including newlines
-              (string("'''") & 
-                  (
+                      (string('"""').not() & any()).star()) &
+                      string('"""')) |
+                  // '''string''' - allows any content including newlines
+                  (string("'''") &
+                      (
                       // Match anything except '''
-                      (string("'''").not() & any()).star()
-                  ) &
-                  string("'''"))
-          )
-      ).flatten();
+                      (string("'''").not() & any()).star()) &
+                      string("'''"))))
+          .flatten();
 
   /// escapeSequence = '\\' ( '\\' | '"' | "'" | '`' | '?' | 'a' | 'b' | 'f' | 'n' | 'r' | 't' | 'v' | [0-3][0-7][0-7] | 'x' [0-9a-fA-F]{2} | 'u' [0-9a-fA-F]{4} | 'U' [0-9a-fA-F]{8} )
   Parser escapeSequence() =>
@@ -507,7 +507,11 @@ class CelParserDefinition extends CelGrammar {
             if (args != null && args[0] == '(') {
               final exprList = args[1] as List<dynamic>?;
               if (exprList == null || exprList.isEmpty) {
-                return Call(target: expr, function: field, args: <Expression>[]);
+                return Call(
+                  target: expr,
+                  function: field,
+                  args: <Expression>[],
+                );
               }
               // Check if this is a macro call
               final isMacro = _isMacroMethod(field);
@@ -560,7 +564,8 @@ class CelParserDefinition extends CelGrammar {
           final args = values.length > 1 ? values[1] : null;
           if (args != null && args is List && args[0] == '(') {
             final exprList =
-                (args[1] as List<dynamic>?)?.cast<Expression>() ?? <Expression>[];
+                (args[1] as List<dynamic>?)?.cast<Expression>() ??
+                <Expression>[];
             return Call(target: null, function: name, args: exprList);
           }
           return Identifier(name);
@@ -617,7 +622,10 @@ class CelParserDefinition extends CelGrammar {
     if (str.startsWith('0x') || str.startsWith('-0x')) {
       // Parse hexadecimal
       if (str.startsWith('-')) {
-        return Literal(-int.parse(str.substring(3), radix: 16), LiteralType.int);
+        return Literal(
+          -int.parse(str.substring(3), radix: 16),
+          LiteralType.int,
+        );
       } else {
         return Literal(int.parse(str.substring(2), radix: 16), LiteralType.int);
       }
@@ -649,8 +657,10 @@ class CelParserDefinition extends CelGrammar {
   Parser stringLiteral() => super.stringLiteral().map((value) {
     String str = value as String;
     bool isRaw = str.startsWith('r') || str.startsWith('R');
-    
-    if (isRaw && (str.substring(1).startsWith('"""') || str.substring(1).startsWith("'''"))) {
+
+    if (isRaw &&
+        (str.substring(1).startsWith('"""') ||
+            str.substring(1).startsWith("'''"))) {
       // Raw triple-quoted string: r"""...""" or r'''...'''
       str = str.substring(4, str.length - 3);
       // Raw strings don't process escape sequences
@@ -680,7 +690,7 @@ class CelParserDefinition extends CelGrammar {
   String _unescapeString(String str) {
     final buffer = StringBuffer();
     int i = 0;
-    
+
     while (i < str.length) {
       if (str[i] == '\\' && i + 1 < str.length) {
         final next = str[i + 1];
@@ -768,8 +778,10 @@ class CelParserDefinition extends CelGrammar {
             break;
           default:
             // Check for octal escape: \[0-3][0-7][0-7]
-            if (i + 3 < str.length && 
-                RegExp(r'^[0-3][0-7][0-7]$').hasMatch(str.substring(i + 1, i + 4))) {
+            if (i + 3 < str.length &&
+                RegExp(
+                  r'^[0-3][0-7][0-7]$',
+                ).hasMatch(str.substring(i + 1, i + 4))) {
               final octal = str.substring(i + 1, i + 4);
               buffer.writeCharCode(int.parse(octal, radix: 8));
               i += 4;
@@ -784,7 +796,7 @@ class CelParserDefinition extends CelGrammar {
         i++;
       }
     }
-    
+
     return buffer.toString();
   }
 

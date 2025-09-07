@@ -100,7 +100,7 @@ class Cel {
 class CelProgram {
   /// The abstract syntax tree of the compiled expression.
   final Expression ast;
-  
+
   /// Optional custom function library.
   final Functions? functions;
 

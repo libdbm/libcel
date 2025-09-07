@@ -109,9 +109,7 @@ class Interpreter implements Visitor<dynamic> {
     }
 
     // Save the current value of the variable (if any)
-    final savedValue = variables.containsKey(name)
-        ? variables[name]
-        : null;
+    final savedValue = variables.containsKey(name) ? variables[name] : null;
     final hadValue = variables.containsKey(name);
 
     try {

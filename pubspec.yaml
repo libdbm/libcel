@@ -1,9 +1,9 @@
 name: libcel
-description: A Dart implementation of the Common Expression Language (CEL) for evaluating expressions in constrained environments. Supports all CEL operators, built-in functions, and custom extensions.
-version: 1.0.0
-homepage: https://github.com/yourusername/libcel
-repository: https://github.com/yourusername/libcel
-issue_tracker: https://github.com/yourusername/libcel/issues
+description: A Dart implementation of the Common Expression Language (CEL) using PetitParser
+version: 1.0.1
+homepage: https://github.com/libdbm/libcel
+repository: https://github.com/libdbm/libcel
+issue_tracker: https://github.com/libdbm/libcel/issues
 documentation: https://pub.dev/documentation/libcel/latest/
 
 environment:
